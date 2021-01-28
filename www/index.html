@@ -1,11 +1,195 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Hello wasm-pack!</title>
-  </head>
-  <body>
-    <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
-    <script src="./bootstrap.js"></script>
-  </body>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>CHIP-8</title> 
+  <style>
+
+    html * {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: medium;
+      text-transform: uppercase;
+      color: rgb(102, 255, 102);
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: row;
+      background-color: #837f80;
+    }
+
+    .row, .column {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .column {
+      flex-direction: column;
+    }
+
+    .inset-display {
+      margin: 20px;
+      padding: 15px;
+      background-color:black;
+      box-shadow: -3px -3px 3px 6px #444141,
+        3px 3px 3px 6px #bbb1b1;
+      overflow-y: auto;
+      align-items:stretch;
+    }
+
+    .no-shrink {
+      flex-shrink: 0;
+    }
+
+    .grow {
+      flex: 1;
+      align-self: stretch;
+    }
+
+    #display-container {
+      display: flex;
+      margin: 20px;
+
+    }
+
+    .memory-byte-pair {
+      padding-left: 10px;
+    }
+
+    .memory-byte-pair-active {
+      color: black;
+      background-color: rgb(102, 255, 102);
+      background-clip: content-box;
+    }
+
+
+    .button {
+      border: 1px solid rgb(102, 255, 102);
+      padding: 10px;
+      margin: 10px;
+    }
+
+    h1 {
+      font-weight: 100;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    table {
+      margin: 5px;
+      padding: 10px;
+    }
+
+    td {
+      text-transform: none;
+    }
+
+    td:nth-child(odd) {
+      text-align: right;
+    }
+
+    td:nth-child(even) {
+      text-align: left;
+    }
+
+    button {
+      background-color: black;
+      color: rgb(102, 255, 102);
+    }
+
+    button:active,
+    button.active {
+      background-color: rgb(102, 255, 102);
+      color: black;
+    }
+
+    #display-container canvas {
+      flex: 1;
+      object-fit: contain;
+      margin: auto;
+      background-color: black;
+      box-shadow: -3px -3px 3px 6px #444141,
+        3px 3px 3px 6px #bbb1b1;
+      padding: 20px;
+      
+    }
+
+    /* width */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    /* Track */
+    ::-webkit-scrollbar-track {
+      background: #000000;
+      border: 1px solid rgb(102,230,102);
+    }
+
+    /* Handle */
+    ::-webkit-scrollbar-thumb {
+      background: rgb(102, 230, 102);
+    }
+
+    /* Handle on hover */
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgb(102, 255, 102);
+    }
+  </style>
+</head>
+
+<body>
+  <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+  <div class="column">
+    <div class="row inset-display">
+        <div class="register-container-column">
+          <h1>Stack</h1>
+          <table>
+            <tbody id="stack-table-body">
+            </tbody>
+          </table>
+        </div>
+        <div class="register-container-column">
+          <h1>Vx</h1>
+          <table>
+            <tbody id="gp-register-table-body">
+            </tbody>
+          </table>
+        </div>
+        <div class="register-container-column">
+          <h1>REG</h1>
+          <table>
+            <tbody id="special-register-table-body">
+            </tbody>
+          </table>
+      </div>
+    </div>
+    <div id="memory-container" class="column inset-display">
+      <div>LOADING...</div>
+    </div>
+  </div>
+  <div class="column grow">
+      <div id="display-container" class="grow"></div>
+
+
+    <div class="row inset-display no-shrink">
+      <button id="button-start" class="button">RUN</button>
+      <button id="button-step" class="button">STEP</button>
+      <button id="button-reset" class="button">RESET</button>
+      <button id="button-load" class="button">LOAD</button>
+    </div>
+
+  </div>
+  <script src="./bootstrap.js"></script>
+</body>
+
 </html>

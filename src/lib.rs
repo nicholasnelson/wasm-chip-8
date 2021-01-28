@@ -13,7 +13,11 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 const DISPLAY_WIDTH: usize = 64;
 const DISPLAY_HEIGHT: usize = 32;
+const PIXEL_ON: [u8; 3] = [102, 255, 102];
+const PIXEL_OFF: [u8; 3] = [0, 0, 0];
 
+#[wasm_bindgen]
+#[repr(C)]
 pub struct CPU {
     memory: [u8; 4096], // RAM
     gpr: [u8; 16usize], // GP registers 0x0 through 0xF
@@ -24,10 +28,11 @@ pub struct CPU {
     sp: u8, // Stack Pointer
     dt: u8, // Delay Timer
     st: u8, // Sound Timer
-    display: [u8; (DISPLAY_WIDTH * DISPLAY_HEIGHT) / 8], // Display memory
+    display: [u8; DISPLAY_WIDTH * DISPLAY_HEIGHT * 3], // Display memory
     keyboard: u16, // Keyboard memory
 }
 
+#[wasm_bindgen]
 impl CPU {
     pub fn new() -> CPU {
         let mut cpu = CPU {
@@ -40,10 +45,26 @@ impl CPU {
             sp: 0u8,
             dt: 0u8,
             st: 0u8,
-            display: [0u8; (DISPLAY_WIDTH * DISPLAY_HEIGHT) / 8],
+            display: [100u8; DISPLAY_WIDTH * DISPLAY_HEIGHT * 3],
             keyboard: 0u16,
         };
         cpu
+    }
+
+    pub fn get_display_pointer(&self) -> *const u8 {
+        self.display.as_ptr()
+    }
+
+    pub fn get_memory_pointer(&self) -> *const u8 {
+        self.memory.as_ptr()
+    }
+
+    pub fn get_stack_pointer(&self) -> *const u16 {
+        self.stack.as_ptr()
+    }
+
+    pub fn get_gpr_pointer(&self) -> *const u8 {
+        self.gpr.as_ptr()
     }
 
     pub fn init_hex_sprites(&mut self) {
@@ -69,65 +90,36 @@ impl CPU {
         target_slice.clone_from_slice(&hex_sprites);
     }
 
-    pub fn set_memory(&mut self, new_memory: &[u8]) {
-        self.memory = [0u8; 4096];
-        let target_slice = &mut self.memory[0x200..0x200 + new_memory.len()];
-        target_slice.clone_from_slice(new_memory);
+    pub fn load_hello_world(&mut self) {
+        let hello_world = [
+            0x61, 0x01, // Set v1 to 1
+            0x62, 0x02, // Set v2 to 2
+            0x63, 0x03, // Set v3 to 3
+            0x64, 0x0F, // Set v3 to 3
+            0xF1, 0x29, // Load address for sprite "1" to I
+            0xD0, 0x15, // Draw "1" to v0,v1
+            0xF2, 0x29, // Load address for sprite "2" to I
+            0x60, 0x06, // Set v0 to 6
+            0xD0, 0x15, // Draw "2" to v0,v1
+            0xF3, 0x29, // Load address for sprite "3" to I
+            0x60, 0x0C, // Set v0 to 12
+            0xD0, 0x15, // Draw "1" to v0,v1
+            0xF4, 0x29, // Load address for sprite "4" to I
+            0x61, 0x07, // Set v1 to 7
+            0xD0, 0x15, // Draw "4" to v0,v1
+        ];
+        let target_slice = &mut self.memory[self.pc as usize..self.pc as usize + hello_world.len()];
+        target_slice.clone_from_slice(&hello_world);
     }
 
-    // Set the stack values and pad with 0s, set the stack pointer accordingly
-    pub fn set_stack(&mut self, new_stack: &[u16]) {
-        self.stack = [0u16; 16];
-        let mut target_slice = &mut self.stack[0..new_stack.len()];
-        target_slice.clone_from_slice(new_stack);
-        self.sp = new_stack.len() as u8;
-    }
-
-    // Set the register contents and pad with 0s
-    pub fn set_registers(&mut self, new_registers: &[u8]) {
-        self.gpr = [0u8; 16];
-        let mut target_slice = &mut self.gpr[0..new_registers.len()];
-        target_slice.clone_from_slice(new_registers);
-    }
-
-    pub fn set_i(&mut self, i: u16) {
-        self.i = i;
-    }
-
-    pub fn set_keyboard(&mut self, keyboard: u16) {
-        self.keyboard = keyboard;
-    }
-
-    pub fn set_dt(&mut self, dt: u8) {
-        self.dt = dt;
+    pub fn load_image(&mut self) {
+        let image = [0x00, 0xe0, 0xa2, 0x48, 0x60, 0x00, 0x61, 0x1e, 0x62, 0x00, 0xd2, 0x02, 0xd2, 0x12, 0x72, 0x08, 0x32, 0x40, 0x12, 0x0a, 0x60, 0x00, 0x61, 0x3e, 0x62, 0x02, 0xa2, 0x4a, 0xd0, 0x2e, 0xd1, 0x2e, 0x72, 0x0e, 0xd0, 0x2e, 0xd1, 0x2e, 0xa2, 0x58, 0x60, 0x0b, 0x61, 0x08, 0xd0, 0x1f, 0x70, 0x0a, 0xa2, 0x67, 0xd0, 0x1f, 0x70, 0x0a, 0xa2, 0x76, 0xd0, 0x1f, 0x70, 0x03, 0xa2, 0x85, 0xd0, 0x1f, 0x70, 0x0a, 0xa2, 0x94, 0xd0, 0x1f, 0x12, 0x46, 0xff, 0xff, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xff, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0xff, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0xff, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0xff, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0xff, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0xff, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0xff, 0x81, 0x81, 0x81, 0x81, 0x81, 0x81, 0xff, 0xff];
+        let target_slice = &mut self.memory[self.pc as usize..self.pc as usize + image.len()];
+        target_slice.clone_from_slice(&image);
     }
 
     pub fn get_pc(&self) -> u16 {
         self.pc
-    }
-
-    pub fn get_sp(&self) -> u8 {
-        self.sp
-    }
-
-    pub fn get_stack(&self) -> [u16; 16] {
-        self.stack
-    }
-
-    pub fn get_registers(&self) -> [u8; 16] {
-        self.gpr
-    }
-
-    pub fn get_vf(&self) -> u8 {
-        self.vf
-    }
-
-    pub fn get_i(&self) -> u16 {
-        self.i
-    }
-
-    pub fn get_display(&self) -> [u8; (DISPLAY_WIDTH * DISPLAY_HEIGHT) / 8] {
-        self.display
     }
 
     pub fn get_dt(&self) -> u8 {
@@ -138,25 +130,18 @@ impl CPU {
         self.st
     }
 
-    pub fn get_memory(&self) -> [u8; 4096] {
-        self.memory
+    pub fn get_i(&self) -> u16 {
+        self.i
     }
 
-    pub fn log_ascii_display(&self) {
-        let mut output: String = self.display.iter().enumerate()
-            .map(|(index, item)| {
-                if index % (DISPLAY_WIDTH / 8) == 0 {
-                    format!("\n{:08b}", item)
-                } else {
-                    format!("{:08b}", item)
-                }
-            })
-            .collect();
-        output = str::replace(&output, "0", " ");
-        output = str::replace(&output, "1", "█");
-        log!("{:?}", output);
+    pub fn get_vf(&self) -> u8 {
+        self.vf
     }
-    
+
+    pub fn get_sp(&self) -> u8 {
+        self.sp
+    }
+        
     pub fn tick(&mut self) {
         // Get the 4 nibbles of the instruction, most significant first
         let instruction_nibbles = [
@@ -169,6 +154,7 @@ impl CPU {
         self.pc += 2;
         // Execute the current instruction
         match instruction_nibbles {
+            [0x0, 0x0, 0xE, 0x0] => self.instruction_cls(),
             [0x0, 0x0, 0xE, 0xE] => self.instruction_ret(),
             [0x1, n1, n2, n3] => self.instruction_jp(n1, n2, n3),
             [0x2, n1, n2, n3] => self.instruction_call(n1, n2, n3),
@@ -204,6 +190,69 @@ impl CPU {
             [0xF, n1, 0x6, 0x5] => self.instruction_ld_vx_i(n1),
             i => panic!("Instruction {:?} not yet implemented.", i),
         };
+    }
+}
+
+impl CPU {
+    pub fn set_memory(&mut self, new_memory: &[u8]) {
+        self.memory = [0u8; 4096];
+        let target_slice = &mut self.memory[0x200..0x200 + new_memory.len()];
+        target_slice.clone_from_slice(new_memory);
+    }
+
+    pub fn set_display(&mut self, new_display: &[u8]) {
+        let target_slice = &mut self.display[..new_display.len()];
+        target_slice.clone_from_slice(new_display);
+    }
+
+    // Set the stack values and pad with 0s, set the stack pointer accordingly
+    pub fn set_stack(&mut self, new_stack: &[u16]) {
+        self.stack = [0u16; 16];
+        let mut target_slice = &mut self.stack[0..new_stack.len()];
+        target_slice.clone_from_slice(new_stack);
+        self.sp = new_stack.len() as u8;
+    }
+
+    // Set the register contents and pad with 0s
+    pub fn set_registers(&mut self, new_registers: &[u8]) {
+        self.gpr = [0u8; 16];
+        let mut target_slice = &mut self.gpr[0..new_registers.len()];
+        target_slice.clone_from_slice(new_registers);
+    }
+
+    pub fn set_i(&mut self, i: u16) {
+        self.i = i;
+    }
+
+    pub fn set_keyboard(&mut self, keyboard: u16) {
+        self.keyboard = keyboard;
+    }
+
+    pub fn set_dt(&mut self, dt: u8) {
+        self.dt = dt;
+    }
+
+    pub fn get_stack(&self) -> [u16; 16] {
+        self.stack
+    }
+
+    pub fn get_registers(&self) -> [u8; 16] {
+        self.gpr
+    }
+
+    pub fn get_display(&self) -> [u8; DISPLAY_WIDTH * DISPLAY_HEIGHT * 3] {
+        self.display
+    }
+
+    pub fn get_memory(&self) -> [u8; 4096] {
+        self.memory
+    }
+
+    // 00E0 - CLS
+    // Clear the display.
+    fn instruction_cls(&mut self) {
+        self.display.clone_from_slice(
+            &[0x0; DISPLAY_WIDTH * DISPLAY_HEIGHT * 3]);
     }
 
     // 00EE - RET
@@ -435,45 +484,31 @@ impl CPU {
     // Display, for more information on the Chip-8 screen and sprites.
     fn instruction_drw(&mut self, n1: u8, n2: u8, n3: u8) {
         self.vf = 0;
-        let x_pos = self.gpr[n1 as usize] as usize;
-        let y_pos = self.gpr[n2 as usize] as usize;
-        // If this coordinate doesn't line up with a byte, find the offset
-        let x_byte_offset = x_pos % 8;
+        let x_origin = self.gpr[n1 as usize] as usize;
+        let y_origin = self.gpr[n2 as usize] as usize;
         // Find the sprite
         let sprite_start = self.i as usize;
         let sprite_end = sprite_start + n3 as usize;
         let sprite = self.memory[sprite_start..sprite_end].iter().enumerate();
         // Draw the sprite
-        for (i, sprite_row) in sprite {
-            // Find the index for the first (left) and second (right) bytes
-            let left_byte_index =
-                (((y_pos + i) * DISPLAY_WIDTH + x_pos) / 8)
-                // Wrap vertically
-                % (DISPLAY_WIDTH * DISPLAY_HEIGHT / 8);
-            let right_byte_index =
-                // If this is the far right column, loop around
-                if (left_byte_index + 1) % (DISPLAY_WIDTH / 8) == 0 {
-                    (((y_pos + i) * DISPLAY_WIDTH) / 8)
-                    
+        for (y, value) in sprite {
+            for x in 0..8 {
+                // If the value is 0, we don't need to do anything
+                if value & 0b10000000 >> x == 0 { continue }
+                // Get the (possibly wrapped) coords
+                let x_pos = (x_origin + x) % DISPLAY_WIDTH;
+                let y_pos = (y_origin + y) % DISPLAY_HEIGHT;
+                // Get the index of the pixel
+                let pixel_index = (y_pos * DISPLAY_WIDTH + x_pos) * 3;
+                let pixel = &mut self.display[pixel_index..pixel_index + 3];
+                // If the value of the targeted pixel is not zero set off + VF
+                if pixel[0] == 0 {
+                    pixel.clone_from_slice(&PIXEL_ON);
                 } else {
-                    left_byte_index + 1
+                    self.vf = 1;
+                    pixel.clone_from_slice(&PIXEL_OFF);
                 }
-                // Wrap vertically
-                % (DISPLAY_WIDTH * DISPLAY_HEIGHT / 8);
-            // Split the sprite row into two halves
-            let sprite_row_left = sprite_row >> x_byte_offset;
-            let sprite_row_right = sprite_row
-                .checked_shl(8 - x_byte_offset as u32).unwrap_or(0);
-            // If there is any overlap with display, set LF
-            if self.display[left_byte_index] & sprite_row_left > 0
-                || self.display[right_byte_index] & sprite_row_right > 0 {
-                    self.vf = 0x1;
             }
-            // Draw to the display
-            self.display[left_byte_index] =
-                self.display[left_byte_index] ^ sprite_row_left;
-            self.display[right_byte_index] =
-                self.display[right_byte_index] ^ sprite_row_right;
         }
     }
 
