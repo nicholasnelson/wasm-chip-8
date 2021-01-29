@@ -1,11 +1,11 @@
 // eslint-disable-next-line import/no-unresolved
 import { memory } from 'chip8/chip_8_emu_bg';
 
-function renderTable(tableData) {
+function renderTable(tableData, bytes) {
   return tableData.reduce((acc, word, i) => acc + 
     `<tr>
       <td>${i.toString(16).toUpperCase()}</td>
-      <td>0x${word.toString(16).padStart(4, "0").toUpperCase()}</td>
+      <td>0x${word.toString(16).padStart(bytes, "0").toUpperCase()}</td>
     </tr>`, "");
 }
 
@@ -36,8 +36,8 @@ export default class RegisterRenderer {
   }
 
   render() {
-    this.output.stack.innerHTML = renderTable(this.stack);
-    this.output.gpRegister.innerHTML = renderTable(this.gpRegisters);
+    this.output.stack.innerHTML = renderTable(this.stack, 4);
+    this.output.gpRegister.innerHTML = renderTable(this.gpRegisters, 2);
     this.output.sRegister.innerHTML = renderLabelledTable(this.getRegisterValues());
   }
 }
