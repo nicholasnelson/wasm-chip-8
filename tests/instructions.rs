@@ -405,10 +405,10 @@ fn instruction_skp() {
             0xE0, 0x9E, // RND V0, 0xFF
         ]);
         cpu.set_registers(&[
-            0xA // Check if "A" key is pressed
+            0x0 // Check if "0" key is pressed
         ]);
-        // A and 0 keys are pressed
-        cpu.set_keyboard(0x0401);
+        // 0 is pressed
+        cpu.set_keyboard(0b0000000000000001);
         let original_pc = cpu.get_pc();
         cpu.tick();
         // Should skip because the key is pressed
@@ -420,10 +420,10 @@ fn instruction_skp() {
             0xE0, 0x9E, // RND V0, 0xFF
         ]);
         cpu.set_registers(&[
-            0xA // Check if A key is pressed
+            0xE // Check if E key is pressed
         ]);
         // All keys except A are pressed
-        cpu.set_keyboard(0xFBFF);
+        cpu.set_keyboard(0b1011111111111111);
         let original_pc = cpu.get_pc();
         cpu.tick();
         // Should not skip because the key is pressed
@@ -439,10 +439,10 @@ fn instruction_sknp() {
             0xE0, 0xA1, // RND V0, 0xFF
         ]);
         cpu.set_registers(&[
-            0xA // Check if "A" key is not pressed
+            0xF // Check if "F" key is not pressed
         ]);
         // A and 0 keys are pressed
-        cpu.set_keyboard(0x0401);
+        cpu.set_keyboard(0b1000000000000000);
         let original_pc = cpu.get_pc();
         cpu.tick();
         // Should not skip because the key is pressed
@@ -457,7 +457,7 @@ fn instruction_sknp() {
             0xA // Check if A key is not pressed
         ]);
         // All keys except A are pressed
-        cpu.set_keyboard(0xFBFF);
+        cpu.set_keyboard(0b1111101111111111);
         let original_pc = cpu.get_pc();
         cpu.tick();
         // Should skip because the key is not pressed
@@ -481,6 +481,7 @@ fn instruction_ld_kp() {
     let mut cpu = CPU::new();
     cpu.set_memory(&[
         0xF0, 0x0A, // LD V0, Next key
+        0xF0, 0x0A, // LD V0, Next key
     ]);
     let original_pc = cpu.get_pc();
     cpu.tick();
@@ -491,6 +492,10 @@ fn instruction_ld_kp() {
     cpu.tick();
     assert_eq!(cpu.get_pc(), original_pc + 2);
     assert_eq!(cpu.get_registers()[0], 0xA);
+    cpu.set_keyboard(0b1000000000000000); // F is pressed
+    cpu.tick();
+    assert_eq!(cpu.get_pc(), original_pc + 4);
+    assert_eq!(cpu.get_registers()[0], 0xF);
 }
 
 #[wasm_bindgen_test]

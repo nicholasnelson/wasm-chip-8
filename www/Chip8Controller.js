@@ -2,6 +2,7 @@ import { CPU } from "chip8";
 import DisplayRenderer from "./DisplayRenderer";
 import MemoryRenderer from "./MemoryRenderer";
 import RegisterRenderer from "./RegisterRenderer";
+import InputHandler from "./InputHandler";
 
 export default class Chip8Controller {
   constructor(elements) {
@@ -30,6 +31,8 @@ export default class Chip8Controller {
         { name: "dt", bytes: 2, value: this.cpu.get_dt() },
         { name: "st", bytes: 2, value: this.cpu.get_st() },
       ]), this.elements.output.register);
+
+    this.inputHandler = new InputHandler(this.cpu);
 
     this.lastTick = -1;
     this.targetTps = 10;

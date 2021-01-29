@@ -142,6 +142,14 @@ impl CPU {
         self.sp
     }
         
+    pub fn set_key_down(&mut self, key_code: u32) {
+        self.keyboard = self.keyboard | 0b000001 << key_code;
+    }
+
+    pub fn set_key_up(&mut self, key_code: u32) {
+        self.keyboard = self.keyboard & !(0b000001 << key_code);
+    }
+        
     pub fn tick(&mut self) {
         // Get the 4 nibbles of the instruction, most significant first
         let instruction_nibbles = [
@@ -549,7 +557,7 @@ impl CPU {
         if self.keyboard == 0 {
             self.pc -= 2;
         } else {
-            for i in 0x0..0xE {
+            for i in 0..16 {
                 if (self.keyboard >> i) & 0x1 == 0x1 {
                     self.gpr[n1 as usize] = i;
                     break;
