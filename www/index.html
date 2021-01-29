@@ -3,9 +3,8 @@
 
 <head>
   <meta charset="utf-8">
-  <title>CHIP-8</title> 
+  <title>CHIP-8</title>
   <style>
-
     html * {
       font-family: 'Courier New', Courier, monospace;
       font-size: medium;
@@ -18,16 +17,17 @@
       width: 100%;
       height: 100%;
       margin: 0;
-      overflow: hidden;
     }
 
     body {
       display: flex;
       flex-direction: row;
+      flex-wrap: wrap;
       background-color: #837f80;
     }
 
-    .row, .column {
+    .row,
+    .column {
       display: flex;
       justify-content: space-around;
       align-items: center;
@@ -40,11 +40,11 @@
     .inset-display {
       margin: 20px;
       padding: 15px;
-      background-color:black;
+      background-color: black;
       box-shadow: -3px -3px 3px 6px #444141,
         3px 3px 3px 6px #bbb1b1;
       overflow-y: auto;
-      align-items:stretch;
+      align-items: stretch;
     }
 
     .no-shrink {
@@ -121,7 +121,6 @@
       box-shadow: -3px -3px 3px 6px #444141,
         3px 3px 3px 6px #bbb1b1;
       padding: 20px;
-      
     }
 
     /* width */
@@ -132,7 +131,7 @@
     /* Track */
     ::-webkit-scrollbar-track {
       background: #000000;
-      border: 1px solid rgb(102,230,102);
+      border: 1px solid rgb(102, 230, 102);
     }
 
     /* Handle */
@@ -151,26 +150,26 @@
   <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
   <div class="column">
     <div class="row inset-display">
-        <div class="register-container-column">
-          <h1>Stack</h1>
-          <table>
-            <tbody id="stack-table-body">
-            </tbody>
-          </table>
-        </div>
-        <div class="register-container-column">
-          <h1>Vx</h1>
-          <table>
-            <tbody id="gp-register-table-body">
-            </tbody>
-          </table>
-        </div>
-        <div class="register-container-column">
-          <h1>REG</h1>
-          <table>
-            <tbody id="special-register-table-body">
-            </tbody>
-          </table>
+      <div class="register-container-column">
+        <h1>Stack</h1>
+        <table>
+          <tbody id="stack-table-body">
+          </tbody>
+        </table>
+      </div>
+      <div class="register-container-column">
+        <h1>Vx</h1>
+        <table>
+          <tbody id="gp-register-table-body">
+          </tbody>
+        </table>
+      </div>
+      <div class="register-container-column">
+        <h1>REG</h1>
+        <table>
+          <tbody id="special-register-table-body">
+          </tbody>
+        </table>
       </div>
     </div>
     <div id="memory-container" class="column inset-display">
@@ -178,7 +177,7 @@
     </div>
   </div>
   <div class="column grow">
-      <div id="display-container" class="grow"></div>
+    <div id="display-container" class="grow"></div>
 
 
     <div class="row inset-display no-shrink">
