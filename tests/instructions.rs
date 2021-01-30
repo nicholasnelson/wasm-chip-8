@@ -39,6 +39,8 @@ fn instruction_call() {
     // Set the CALL instruction in memory targeting 0xABC
     cpu.set_memory(&[0x2A, 0xBC]);
     cpu.tick();
+    // SP should be 1
+    assert_eq!(cpu.get_sp(), 1);
     // PC should equal the target 0xABC
     assert_eq!(cpu.get_pc(), 0xABC);
     // The first value on the stack should be the original PC value + 2
