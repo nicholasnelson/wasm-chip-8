@@ -8,9 +8,10 @@ export default class Chip8Controller {
   constructor(elements) {
     this.elements = elements;
 
+    this.ticksPerFrame = 10; // 10 ticks per frame @ 60fps = 600Hz
+
     this.cpu = CPU.new();
     this.cpu.init_hex_sprites();
-    this.cpu.load_image();
 
     this.displayRenderer = new DisplayRenderer(
       this.cpu.get_display_pointer(),
@@ -38,12 +39,11 @@ export default class Chip8Controller {
     this.targetTps = 10;
     this.running = false;
 
-    this.setupButtons(elements.button);
+    this.setupButtons(elements.button, elements.input);
 
     this.renderLoop = (timestamp) => {
       if (this.running && timestamp > this.lastTick + 1000 / this.targetTps) {
-        this.stepCpu();
-        this.render();
+        this.stepCpu(this.ticksPerFrame);
         this.lastTick = timestamp;
       }
     
@@ -53,9 +53,12 @@ export default class Chip8Controller {
     this.render();
   }
 
-  stepCpu() {
-    this.cpu.tick();
+  stepCpu(ticks = 1) {
+    for (let i = 0; i < ticks; i++) {
+      this.cpu.tick();
+    }
     this.displayRenderer.setDirtyFlag();
+    this.render();
   }
 
   render() {
@@ -79,25 +82,37 @@ export default class Chip8Controller {
       this.toggleRun();
     }
     this.stepCpu();
-    this.render();
   }
 
   reset() {
-    alert("Not yet implemented!");
-    // Push whatever image we last loaded to the CPU
-    // Reset registers
+    this.cpu.reset();
+    this.cpu.load_program_memory(this.currentRom);
+    this.render();
   }
 
-  load() {
-    alert("Not yet implemented!");
-    // Load a memory image from a file
+  triggerLoad() {
+    // Trigger the file input
+    this.elements.input.romFile.click();
+  }
+
+  handleLoad() {
+    const romFile = this.elements.input.romFile.files[0];
+    // Read the file
+    romFile.arrayBuffer().then(result => {
+      this.currentRom = new Uint8Array(result);
+      this.reset();
+    });
+
+
+    this.cpu.load_program_memory([0xF1, 0x0A, 0xE1, 0x9E, 0x70, 0x01, 0x12, 0x02]);
     // Call this.reset() to handle resetting registers
   }
 
-  setupButtons(buttons) {
+  setupButtons(buttons, inputs) {
     buttons.start.onclick = () => { this.toggleRun() };
     buttons.step.onclick = () => { this.stepSim() };
     buttons.reset.onclick = () => { this.reset() };
-    buttons.load.onclick = () => { this.load() };
+    buttons.load.onclick = () => { this.triggerLoad() };
+    inputs.romFile.onchange = () => { this.handleLoad() };
   }
 }

@@ -15,6 +15,9 @@ let elements = {
     step: document.getElementById("button-step"),
     reset: document.getElementById("button-reset"),
     load: document.getElementById("button-load"),
+  },
+  input: {
+    romFile: document.getElementById("input-rom-file"),
   }
 };
 

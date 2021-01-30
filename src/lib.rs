@@ -118,6 +118,11 @@ impl CPU {
         target_slice.clone_from_slice(&image);
     }
 
+    pub fn load_program_memory(&mut self, memory: Vec<u8>) {
+        let target_slice = &mut self.memory[self.pc as usize..self.pc as usize + memory.len()];
+        target_slice.clone_from_slice(memory.as_slice());
+    }
+
     pub fn get_pc(&self) -> u16 {
         self.pc
     }
@@ -141,13 +146,27 @@ impl CPU {
     pub fn get_sp(&self) -> u8 {
         self.sp
     }
-        
+
     pub fn set_key_down(&mut self, key_code: u32) {
         self.keyboard = self.keyboard | 0b000001 << key_code;
     }
 
     pub fn set_key_up(&mut self, key_code: u32) {
         self.keyboard = self.keyboard & !(0b000001 << key_code);
+    }
+
+    pub fn reset(&mut self) {
+        self.memory.iter_mut().for_each(|m| *m = 0);
+        self.gpr.iter_mut().for_each(|m| *m = 0);
+        self.stack.iter_mut().for_each(|m| *m = 0);
+        self.vf = 0;
+        self.i = 0;
+        self.pc = 0x200;
+        self.sp = 0;
+        self.dt = 0;
+        self.st = 0;
+        self.display.iter_mut().for_each(|m| *m = 0);
+        self.keyboard = 0;    
     }
         
     pub fn tick(&mut self) {
