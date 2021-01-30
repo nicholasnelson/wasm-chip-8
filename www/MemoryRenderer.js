@@ -13,25 +13,32 @@ function getRowLabelDiv(address) {
   `;
 }
 
-function getWordDiv(word, active) {
-  return `
-    <div class="memory-byte-pair${active ? " memory-byte-pair-active" : ""}">
-      ${word.toString(16).padStart(4, "0")}
-    </div>
-  `
+function getMemoryRowDiv(memory, startAddress, pc) {
+  let html = [
+    '<div class="row">',
+    getRowLabelDiv(startAddress)];
+
+  // Get the pc value relative to this memory block
+  let offsetPC = pc - startAddress;
+  // For each byte, add it to the html array
+  for (let offset = 0; offset < memory.length; offset += 1) {
+    html.push('<div class="memory-byte');
+    // If this address is at the current PC or PC+1, mark it as active
+    if (offset == offsetPC || offset == offsetPC + 1) {
+      html.push(' memory-byte-active');
+    }
+    html.push('">', memory[offset].toString(16).padStart(2, '0'), '</div>');
+  }
+  html.push('</div>');
+  return html.join('');
 }
 
-function getMemoryRowDiv(memory, startAddress, pc) {
-  let memoryU16 = new Uint16Array(memory.buffer);
-  //console.log(memory);
-  //console.log(memoryU16);
-  return `
-    <div class="row">
-      ${getRowLabelDiv(startAddress)}
-      ${memoryU16.reduce((acc, word, i) => acc + getWordDiv(word, startAddress + i*2 == pc), "")}
-    </div>
-      
-  `
+function getDisplayBounds(pc) {
+  let rowStart = pc - pc % BYTES_PER_ROW;
+  return {
+    from: Math.max(rowStart - 56, 0),
+    to: Math.min(rowStart + 64, 4096),
+  };
 }
 
 export default class MemoryRenderer {
@@ -44,22 +51,12 @@ export default class MemoryRenderer {
   }
 
   render(pc) {
-    const bounds = this.getDisplayBounds(pc);
-    let output = "";
+    const bounds = getDisplayBounds(pc);
+    let output = [];
     // Loop over each row of BYTES_PER_ROW bytes
     for (let i = bounds.from; i < bounds.to; i += BYTES_PER_ROW) {
-      output += getMemoryRowDiv(this.memory.slice(i, i + BYTES_PER_ROW), i, pc);
+      output.push(getMemoryRowDiv(this.memory.slice(i, i + BYTES_PER_ROW), i, pc));
     }
-    this.targetDiv.innerHTML = output;
+    this.targetDiv.innerHTML = output.join('');
   }
-
-  getDisplayBounds(pc) {
-    let rowStart = pc - pc % BYTES_PER_ROW;
-    return {
-      from: Math.max(rowStart - 56, 0),
-      to: Math.min(rowStart + 64, 4096),
-    }
-  }
-
-
 }
