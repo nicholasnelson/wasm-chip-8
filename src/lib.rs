@@ -1,3 +1,5 @@
+use std::cmp;
+
 #[macro_use]
 mod utils;
 
@@ -27,6 +29,7 @@ pub struct CPU {
     st: u8, // Sound Timer
     display: [u8; DISPLAY_WIDTH * DISPLAY_HEIGHT * 3], // Display memory
     keyboard: u16, // Keyboard memory
+    last_tick_time: u64, // Unix time of the last tick
 }
 
 #[wasm_bindgen]
@@ -43,6 +46,7 @@ impl CPU {
             st: 0u8,
             display: [100u8; DISPLAY_WIDTH * DISPLAY_HEIGHT * 3],
             keyboard: 0u16,
+            last_tick_time: 0u64,
         }
     }
 
@@ -159,6 +163,14 @@ impl CPU {
         self.keyboard = 0;    
     }
         
+    // Decrement timers at ~60Hz based on provide unix time
+    pub fn tick_timers(&mut self, time: u64) {
+        let decrement = (time - self.last_tick_time) / 17;
+        self.last_tick_time = time - (time - self.last_tick_time) % 17;
+        self.dt -= cmp::min(self.dt as u64, decrement) as u8;
+        self.st -= cmp::min(self.st as u64, decrement) as u8;
+    }
+        
     pub fn tick(&mut self) {
         // Get the 4 nibbles of the instruction, most significant first
         let instruction_nibbles = [
@@ -205,7 +217,7 @@ impl CPU {
             [0xF, n1, 0x3, 0x3] => self.instruction_bcd(n1),
             [0xF, n1, 0x5, 0x5] => self.instruction_ld_i_vx(n1),
             [0xF, n1, 0x6, 0x5] => self.instruction_ld_vx_i(n1),
-            i => panic!("Instruction {:?} not yet implemented.", i),
+            _ => self.reset(),
         };
     }
 }
@@ -480,7 +492,8 @@ impl CPU {
     //
     // The program counter is set to nnn plus the value of V0.
     fn instruction_jpv0(&mut self, n1: u8, n2: u8, n3: u8) {
-        self.pc = self.i + ((n1 as u16) << 8 | (n2 as u16) << 4 | n3 as u16);
+        self.pc = self.gpr[0] as u16
+            + ((n1 as u16) << 8 | (n2 as u16) << 4 | n3 as u16);
     }
 
     // Cxkk - RND Vx, byte
@@ -635,7 +648,7 @@ impl CPU {
     fn instruction_ld_i_vx(&mut self, n1: u8) {
         for register_index in 0..=n1 as usize {
             self.memory[self.i as usize + register_index] =
-                self.gpr[n1 as usize];
+                self.gpr[register_index as usize];
         }
     }
 

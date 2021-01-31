@@ -371,11 +371,11 @@ fn instruction_ldi() {
 fn instruction_jpv0() {
     let mut cpu = CPU::new();
     cpu.set_memory(&[
-        0xB0, 0x03, // JP V0 0x3
+        0xB2, 0x22, // JPV 0x222
     ]);
-    cpu.set_i(0x120);
+    cpu.set_registers(&[0x4]);
     cpu.tick();
-    assert_eq!(cpu.get_pc(), 0x123);
+    assert_eq!(cpu.get_pc(), 0x226);
 }
 
 #[wasm_bindgen_test]
@@ -571,30 +571,21 @@ fn instruction_ld_i_vx() {
         0xF7, 0x55, // LD [I], V0-7
         0xFF, 0x55, // LD [I], V0-F
     ]);
-    cpu.set_registers(&[0xFF; 16]);
+    cpu.set_registers(&[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
     let output_address = cpu.get_pc() + 6;
     cpu.set_i(output_address);
     cpu.tick();
     assert_eq!(cpu.get_memory()
         [output_address as usize..output_address as usize + 16],
-        [
-            0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        ]);
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
     cpu.tick();
     assert_eq!(cpu.get_memory()
         [output_address as usize..output_address as usize + 16],
-        [
-            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        ]);
+        [1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0, 0, 0, 0]);
     cpu.tick();
     assert_eq!(cpu.get_memory()
         [output_address as usize..output_address as usize + 16],
-        [
-            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-        ]);
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
 }
 
 #[wasm_bindgen_test]
@@ -604,29 +595,22 @@ fn instruction_ld_vx_i() {
         0xF0, 0x65, // LD [I], V0
         0xF7, 0x65, // LD [I], V0-7
         0xFF, 0x65, // LD [I], V0-F
-        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // Load target
-        0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // Load target
+        1, 2, 3, 4, 5, 6, 7, 8, // Load target
+        9, 10, 11, 12, 13, 14, 15, 16, // Load target
     ]);
     let output_address = cpu.get_pc() + 6;
     cpu.set_i(output_address);
     cpu.tick();
     assert_eq!(cpu.get_registers(),
-        [
-            0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        ]);
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+
     cpu.tick();
     assert_eq!(cpu.get_registers(),
-        [
-            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        ]);
+        [1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0, 0, 0, 0]);
+
     cpu.tick();
     assert_eq!(cpu.get_registers(),
-        [
-            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-        ]);
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
 }
 
 #[wasm_bindgen_test]
