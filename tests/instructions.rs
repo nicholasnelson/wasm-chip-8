@@ -339,7 +339,7 @@ fn instruction_sne_register() {
         cpu.set_memory(&[
             0x90, 0x10, // SNE gpr0, gpr1
         ]);
-        let mut original_pc = cpu.get_pc();
+        let original_pc = cpu.get_pc();
         cpu.tick();
         // Normal increment of 2 without skip
         assert_eq!(cpu.get_pc(), original_pc + 2);
@@ -350,7 +350,7 @@ fn instruction_sne_register() {
         cpu.set_memory(&[
             0x90, 0x10, // SNE gpr0, gpr1
         ]);
-        let mut original_pc = cpu.get_pc();
+        let original_pc = cpu.get_pc();
         cpu.tick();
         // Skip = pc has been increased by 4
         assert_eq!(cpu.get_pc(), original_pc + 4);

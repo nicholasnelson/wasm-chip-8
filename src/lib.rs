@@ -1,5 +1,3 @@
-use std::fmt::Write;
-
 #[macro_use]
 mod utils;
 
@@ -34,7 +32,7 @@ pub struct CPU {
 #[wasm_bindgen]
 impl CPU {
     pub fn new() -> CPU {
-        let mut cpu = CPU {
+        CPU {
             memory: [0u8; 4096],
             gpr: [0u8; 16],
             stack: [0u16; 16],
@@ -45,8 +43,7 @@ impl CPU {
             st: 0u8,
             display: [100u8; DISPLAY_WIDTH * DISPLAY_HEIGHT * 3],
             keyboard: 0u16,
-        };
-        cpu
+        }
     }
 
     pub fn get_display_pointer(&self) -> *const u8 {
@@ -142,11 +139,11 @@ impl CPU {
     }
 
     pub fn set_key_down(&mut self, key_code: u32) {
-        self.keyboard = self.keyboard | 0b000001 << key_code;
+        self.keyboard |= 0b000001 << key_code;
     }
 
     pub fn set_key_up(&mut self, key_code: u32) {
-        self.keyboard = self.keyboard & !(0b000001 << key_code);
+        self.keyboard &= !(0b000001 << key_code);
     }
 
     pub fn reset(&mut self) {
@@ -213,6 +210,12 @@ impl CPU {
     }
 }
 
+impl Default for CPU {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CPU {
     pub fn set_memory(&mut self, new_memory: &[u8]) {
         self.memory = [0u8; 4096];
@@ -228,7 +231,7 @@ impl CPU {
     // Set the stack values and pad with 0s, set the stack pointer accordingly
     pub fn set_stack(&mut self, new_stack: &[u16]) {
         self.stack = [0u16; 16];
-        let mut target_slice = &mut self.stack[0..new_stack.len()];
+        let target_slice = &mut self.stack[0..new_stack.len()];
         target_slice.clone_from_slice(new_stack);
         self.sp = new_stack.len() as u8;
     }
@@ -236,7 +239,7 @@ impl CPU {
     // Set the register contents and pad with 0s
     pub fn set_registers(&mut self, new_registers: &[u8]) {
         self.gpr = [0u8; 16];
-        let mut target_slice = &mut self.gpr[0..new_registers.len()];
+        let target_slice = &mut self.gpr[0..new_registers.len()];
         target_slice.clone_from_slice(new_registers);
     }
 
@@ -372,7 +375,7 @@ impl CPU {
     // if either bit is 1, then the same bit in the result is also 1. Otherwise,
     // it is 0.
     fn instruction_or_gpr(&mut self, n1: u8, n2: u8) {
-        self.gpr[n1 as usize] = self.gpr[n1 as usize] | self.gpr[n2 as usize];
+        self.gpr[n1 as usize] |= self.gpr[n2 as usize];
     }
 
 
@@ -384,7 +387,7 @@ impl CPU {
     // if both bits are 1, then the same bit in the result is also 1.
     // Otherwise, it is 0.
     fn instruction_and_gpr(&mut self, n1: u8, n2: u8) {
-        self.gpr[n1 as usize] = self.gpr[n1 as usize] & self.gpr[n2 as usize];
+        self.gpr[n1 as usize] &= self.gpr[n2 as usize];
     }
 
     // 8xy3 - XOR Vx, Vy
@@ -395,7 +398,7 @@ impl CPU {
     // two values, and if the bits are not both the same, then the corresponding
     // bit in the result is set to 1. Otherwise, it is 0.
     fn instruction_xor_gpr(&mut self, n1: u8, n2: u8) {
-        self.gpr[n1 as usize] = self.gpr[n1 as usize] ^ self.gpr[n2 as usize];
+        self.gpr[n1 as usize] ^= self.gpr[n2 as usize];
     }
 
     // 8xy4 - ADD Vx, Vy
@@ -430,7 +433,7 @@ impl CPU {
     // 0. Then Vx is divided by 2.
     fn instruction_shr_gpr(&mut self, n1: u8) {
         self.gpr[0xF] = self.gpr[n1 as usize] & 0b00000001;
-        self.gpr[n1 as usize] = self.gpr[n1 as usize] >> 1;
+        self.gpr[n1 as usize] >>= 1;
     }
 
     // 8xy7 - SUBN Vx, Vy
@@ -451,7 +454,7 @@ impl CPU {
     // If the most-significant bit of Vx is 1, then VF is set to 1, otherwise to 0. Then Vx is multiplied by 2.
     fn instruction_shl_gpr(&mut self, n1: u8) {
         self.gpr[0xF] = if self.gpr[n1 as usize] & 0b10000000 == 0 { 0 } else { 1 };
-        self.gpr[n1 as usize] = self.gpr[n1 as usize] << 1;
+        self.gpr[n1 as usize] <<= 1;
     }
 
     // 9xy0 - SNE Vx, Vy
