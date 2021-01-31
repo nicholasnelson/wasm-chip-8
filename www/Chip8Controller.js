@@ -8,8 +8,6 @@ export default class Chip8Controller {
   constructor(elements) {
     this.elements = elements;
 
-    this.ticksPerFrame = 1;
-
     this.currentRom = [0x00, 0xe0, 0xa2, 0x48, 0x60, 0x00, 0x61, 0x1e, 0x62,
       0x00, 0xd2, 0x02, 0xd2, 0x12, 0x72, 0x08, 0x32, 0x40, 0x12, 0x0a, 0x60,
       0x00, 0x61, 0x3e, 0x62, 0x02, 0xa2, 0x4a, 0xd0, 0x2e, 0xd1, 0x2e, 0x72,
@@ -51,18 +49,15 @@ export default class Chip8Controller {
 
     this.inputHandler = new InputHandler(this.cpu);
 
-    this.lastTick = -1;
-    this.targetTps = 10;
-    this.running = false;
+    this.ticksPerFrame = 10; // 10 ticks per frame * 60 fps = 600 tps
+    this.running = true;
 
     this.setupButtons(elements.button, elements.input);
 
-    this.renderLoop = (timestamp) => {
-      if (this.running && timestamp > this.lastTick + 1000 / this.targetTps) {
+    this.renderLoop = () => {
+      if (this.running) {
         this.stepCpu(this.ticksPerFrame);
-        this.lastTick = timestamp;
       }
-
       requestAnimationFrame(this.renderLoop);
     };
 
