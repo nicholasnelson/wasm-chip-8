@@ -23,7 +23,6 @@ pub struct CPU {
     gpr: [u8; 16usize], // GP registers 0x0 through 0xF
     stack: [u16; 16], // The stack
     i: u16, // I register
-    vf: u8, // VF register
     pc: u16, // Program Counter
     sp: u8, // Stack Pointer
     dt: u8, // Delay Timer
@@ -39,7 +38,6 @@ impl CPU {
             memory: [0u8; 4096],
             gpr: [0u8; 16],
             stack: [0u16; 16],
-            vf: 0u8,
             i: 0u16,
             pc: 0x200u16,
             sp: 0u8,
@@ -139,10 +137,6 @@ impl CPU {
         self.i
     }
 
-    pub fn get_vf(&self) -> u8 {
-        self.vf
-    }
-
     pub fn get_sp(&self) -> u8 {
         self.sp
     }
@@ -159,7 +153,6 @@ impl CPU {
         self.memory.iter_mut().for_each(|m| *m = 0);
         self.gpr.iter_mut().for_each(|m| *m = 0);
         self.stack.iter_mut().for_each(|m| *m = 0);
-        self.vf = 0;
         self.i = 0;
         self.pc = 0x200;
         self.sp = 0;
@@ -415,7 +408,7 @@ impl CPU {
         let add_result = self.gpr[n1 as usize]
             .overflowing_add(self.gpr[n2 as usize]);
         self.gpr[n1 as usize] = add_result.0;
-        self.vf = if add_result.1 { 1 } else { 0 };
+        self.gpr[0xF] = if add_result.1 { 1 } else { 0 };
     }
 
     // 8xy5 - SUB Vx, Vy
@@ -427,7 +420,7 @@ impl CPU {
         let sub_result = self.gpr[n1 as usize]
             .overflowing_sub(self.gpr[n2 as usize]);
         self.gpr[n1 as usize] = sub_result.0;
-        self.vf = if sub_result.1 { 0 } else { 1 };
+        self.gpr[0xF] = if sub_result.1 { 0 } else { 1 };
     }
 
     // 8xy6 - SHR Vx {, Vy}
@@ -436,7 +429,7 @@ impl CPU {
     // If the least-significant bit of Vx is 1, then VF is set to 1, otherwise
     // 0. Then Vx is divided by 2.
     fn instruction_shr_gpr(&mut self, n1: u8) {
-        self.vf = self.gpr[n1 as usize] & 0b00000001;
+        self.gpr[0xF] = self.gpr[n1 as usize] & 0b00000001;
         self.gpr[n1 as usize] = self.gpr[n1 as usize] >> 1;
     }
 
@@ -449,7 +442,7 @@ impl CPU {
         let sub_result = self.gpr[n2 as usize]
             .overflowing_sub(self.gpr[n1 as usize]);
         self.gpr[n1 as usize] = sub_result.0;
-        self.vf = if sub_result.1 { 0 } else { 1 };
+        self.gpr[0xF] = if sub_result.1 { 0 } else { 1 };
     }
 
     // 8xyE - SHL Vx {, Vy}
@@ -457,7 +450,7 @@ impl CPU {
     //
     // If the most-significant bit of Vx is 1, then VF is set to 1, otherwise to 0. Then Vx is multiplied by 2.
     fn instruction_shl_gpr(&mut self, n1: u8) {
-        self.vf = if self.gpr[n1 as usize] & 0b10000000 == 0 { 0 } else { 1 };
+        self.gpr[0xF] = if self.gpr[n1 as usize] & 0b10000000 == 0 { 0 } else { 1 };
         self.gpr[n1 as usize] = self.gpr[n1 as usize] << 1;
     }
 
@@ -511,7 +504,7 @@ impl CPU {
     // See instruction 8xy3 for more information on XOR, and section 2.4,
     // Display, for more information on the Chip-8 screen and sprites.
     fn instruction_drw(&mut self, n1: u8, n2: u8, n3: u8) {
-        self.vf = 0;
+        self.gpr[0xF] = 0;
         let x_origin = self.gpr[n1 as usize] as usize;
         let y_origin = self.gpr[n2 as usize] as usize;
         // Find the sprite
@@ -533,7 +526,7 @@ impl CPU {
                 if pixel[0] == 0 {
                     pixel.clone_from_slice(&PIXEL_ON);
                 } else {
-                    self.vf = 1;
+                    self.gpr[0xF] = 1;
                     pixel.clone_from_slice(&PIXEL_OFF);
                 }
             }

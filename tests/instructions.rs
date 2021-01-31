@@ -242,13 +242,13 @@ fn instruction_add_register() {
     ]);
     cpu.tick();
     assert_eq!(cpu.get_registers()[0], 0xFF);
-    assert_eq!(cpu.get_vf(), 0);
+    assert_eq!(cpu.get_registers()[0xF], 0);
     cpu.tick();
     assert_eq!(cpu.get_registers()[2], 0xFE);
-    assert_eq!(cpu.get_vf(), 1);
+    assert_eq!(cpu.get_registers()[0xF], 1);
     cpu.tick();
     assert_eq!(cpu.get_registers()[4], 0xBB);
-    assert_eq!(cpu.get_vf(), 0);
+    assert_eq!(cpu.get_registers()[0xF], 0);
 }
 
 #[wasm_bindgen_test]
@@ -262,13 +262,13 @@ fn instruction_sub_register() {
     ]);
     cpu.tick();
     assert_eq!(cpu.get_registers()[0], 0x01);
-    assert_eq!(cpu.get_vf(), 0);
+    assert_eq!(cpu.get_registers()[0xF], 0);
     cpu.tick();
     assert_eq!(cpu.get_registers()[2], 0x00);
-    assert_eq!(cpu.get_vf(), 1);
+    assert_eq!(cpu.get_registers()[0xF], 1);
     cpu.tick();
     assert_eq!(cpu.get_registers()[4], 0x99);
-    assert_eq!(cpu.get_vf(), 1);
+    assert_eq!(cpu.get_registers()[0xF], 1);
 }
 
 #[wasm_bindgen_test]
@@ -282,13 +282,13 @@ fn instruction_shr_register() {
     ]);
     cpu.tick();
     assert_eq!(cpu.get_registers()[0], 0x00);
-    assert_eq!(cpu.get_vf(), 0);
+    assert_eq!(cpu.get_registers()[0xF], 0);
     cpu.tick();
     assert_eq!(cpu.get_registers()[1], 0x00);
-    assert_eq!(cpu.get_vf(), 1);
+    assert_eq!(cpu.get_registers()[0xF], 1);
     cpu.tick();
     assert_eq!(cpu.get_registers()[2], 0x7F);
-    assert_eq!(cpu.get_vf(), 1);
+    assert_eq!(cpu.get_registers()[0xF], 1);
 }
 
 #[wasm_bindgen_test]
@@ -302,13 +302,13 @@ fn instruction_subn_register() {
     ]);
     cpu.tick();
     assert_eq!(cpu.get_registers()[0], 0xFF);
-    assert_eq!(cpu.get_vf(), 0);
+    assert_eq!(cpu.get_registers()[0xF], 0);
     cpu.tick();
     assert_eq!(cpu.get_registers()[2], 0x00);
-    assert_eq!(cpu.get_vf(), 1);
+    assert_eq!(cpu.get_registers()[0xF], 1);
     cpu.tick();
     assert_eq!(cpu.get_registers()[4], 0x99);
-    assert_eq!(cpu.get_vf(), 1);
+    assert_eq!(cpu.get_registers()[0xF], 1);
 }
 
 #[wasm_bindgen_test]
@@ -322,13 +322,13 @@ fn instruction_shl_register() {
     ]);
     cpu.tick();
     assert_eq!(cpu.get_registers()[0], 0x00);
-    assert_eq!(cpu.get_vf(), 0);
+    assert_eq!(cpu.get_registers()[0xF], 0);
     cpu.tick();
     assert_eq!(cpu.get_registers()[1], 0x1E);
-    assert_eq!(cpu.get_vf(), 0);
+    assert_eq!(cpu.get_registers()[0xF], 0);
     cpu.tick();
     assert_eq!(cpu.get_registers()[2], 0xFE);
-    assert_eq!(cpu.get_vf(), 1);
+    assert_eq!(cpu.get_registers()[0xF], 1);
 }
 
 #[wasm_bindgen_test]
