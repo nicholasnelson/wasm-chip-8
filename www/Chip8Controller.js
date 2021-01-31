@@ -51,12 +51,13 @@ export default class Chip8Controller {
 
     this.ticksPerFrame = 10; // 10 ticks per frame * 60 fps = 600 tps
     this.running = true;
+    this.turbo = true;
 
     this.setupButtons(elements.button, elements.input);
 
     this.renderLoop = () => {
       if (this.running) {
-        this.stepCpu(this.ticksPerFrame);
+        this.stepCpu(this.ticksPerFrame * this.turbo ? 100 : 1);
       }
       requestAnimationFrame(this.renderLoop);
     };
@@ -90,6 +91,15 @@ export default class Chip8Controller {
     }
   }
 
+  toggleTurbo() {
+    this.turbo = !this.turbo;
+    if (this.turbo) {
+      this.elements.button.turbo.classList.add('active');
+    } else {
+      this.elements.button.turbo.classList.remove('active');
+    }
+  }
+
   stepSim() {
     if (this.running) {
       this.toggleRun();
@@ -110,6 +120,10 @@ export default class Chip8Controller {
   }
 
   handleLoad() {
+    if (this.turbo) {
+      this.toggleTurbo();
+    }
+
     const romFile = this.elements.input.romFile.files[0];
     // Read the file
     romFile.arrayBuffer().then((result) => {
@@ -122,6 +136,7 @@ export default class Chip8Controller {
   }
 
   setupButtons(buttons, inputs) {
+    buttons.turbo.addEventListener('click', () => { this.toggleTurbo(); });
     buttons.start.addEventListener('click', () => { this.toggleRun(); });
     buttons.step.addEventListener('click', () => { this.stepSim(); });
     buttons.reset.addEventListener('click', () => { this.reset(); });

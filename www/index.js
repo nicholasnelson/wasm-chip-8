@@ -11,6 +11,7 @@ const elements = {
     },
   },
   button: {
+    turbo: document.getElementById('button-turbo'),
     start: document.getElementById('button-start'),
     step: document.getElementById('button-step'),
     reset: document.getElementById('button-reset'),
