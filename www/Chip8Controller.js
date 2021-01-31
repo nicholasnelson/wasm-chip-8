@@ -1,8 +1,8 @@
-import { CPU } from "chip8";
-import DisplayRenderer from "./DisplayRenderer";
-import MemoryRenderer from "./MemoryRenderer";
-import RegisterRenderer from "./RegisterRenderer";
-import InputHandler from "./InputHandler";
+import { CPU } from 'chip8/chip_8_emu';
+import DisplayRenderer from './DisplayRenderer';
+import MemoryRenderer from './MemoryRenderer';
+import RegisterRenderer from './RegisterRenderer';
+import InputHandler from './InputHandler';
 
 export default class Chip8Controller {
   constructor(elements) {
@@ -15,7 +15,8 @@ export default class Chip8Controller {
 
     this.displayRenderer = new DisplayRenderer(
       this.cpu.get_display_pointer(),
-      this.elements.output.display);
+      this.elements.output.display,
+    );
 
     this.memoryRenderer = new MemoryRenderer(
       this.cpu.get_memory_pointer(),
@@ -26,12 +27,13 @@ export default class Chip8Controller {
       this.cpu.get_stack_pointer(),
       this.cpu.get_gpr_pointer(),
       () => ([
-        { name: "i" , bytes: 4, value: this.cpu.get_i() },
-        { name: "pc", bytes: 4, value: this.cpu.get_pc() },
-        { name: "sp", bytes: 2, value: this.cpu.get_sp() },
-        { name: "dt", bytes: 2, value: this.cpu.get_dt() },
-        { name: "st", bytes: 2, value: this.cpu.get_st() },
-      ]), this.elements.output.register);
+        { name: 'i', bytes: 4, value: this.cpu.get_i() },
+        { name: 'pc', bytes: 4, value: this.cpu.get_pc() },
+        { name: 'sp', bytes: 2, value: this.cpu.get_sp() },
+        { name: 'dt', bytes: 2, value: this.cpu.get_dt() },
+        { name: 'st', bytes: 2, value: this.cpu.get_st() },
+      ]), this.elements.output.register,
+    );
 
     this.inputHandler = new InputHandler(this.cpu);
 
@@ -46,9 +48,9 @@ export default class Chip8Controller {
         this.stepCpu(this.ticksPerFrame);
         this.lastTick = timestamp;
       }
-    
+
       requestAnimationFrame(this.renderLoop);
-    }
+    };
 
     this.render();
   }
@@ -64,16 +66,16 @@ export default class Chip8Controller {
   render() {
     this.displayRenderer.render();
     this.registerRenderer.render();
-    let pc = this.cpu.get_pc();
+    const pc = this.cpu.get_pc();
     this.memoryRenderer.render(pc);
   }
 
   toggleRun() {
     this.running = !this.running;
     if (this.running) {
-      this.elements.button.start.classList.add("active");
+      this.elements.button.start.classList.add('active');
     } else {
-      this.elements.button.start.classList.remove("active");
+      this.elements.button.start.classList.remove('active');
     }
   }
 
@@ -98,21 +100,20 @@ export default class Chip8Controller {
   handleLoad() {
     const romFile = this.elements.input.romFile.files[0];
     // Read the file
-    romFile.arrayBuffer().then(result => {
+    romFile.arrayBuffer().then((result) => {
       this.currentRom = new Uint8Array(result);
       this.reset();
     });
-
 
     this.cpu.load_program_memory([0xF1, 0x0A, 0xE1, 0x9E, 0x70, 0x01, 0x12, 0x02]);
     // Call this.reset() to handle resetting registers
   }
 
   setupButtons(buttons, inputs) {
-    buttons.start.onclick = () => { this.toggleRun() };
-    buttons.step.onclick = () => { this.stepSim() };
-    buttons.reset.onclick = () => { this.reset() };
-    buttons.load.onclick = () => { this.triggerLoad() };
-    inputs.romFile.onchange = () => { this.handleLoad() };
+    buttons.start.addEventListener('click', () => { this.toggleRun(); });
+    buttons.step.addEventListener('click', () => { this.stepSim(); });
+    buttons.reset.addEventListener('click', () => { this.reset(); });
+    buttons.load.addEventListener('click', () => { this.triggerLoad(); });
+    inputs.romFile.addEventListener('change', () => { this.handleLoad(); });
   }
 }

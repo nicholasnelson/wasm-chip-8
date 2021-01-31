@@ -2,21 +2,21 @@
 import { memory } from 'chip8/chip_8_emu_bg';
 
 function renderTable(tableData, bytes) {
-  return tableData.reduce((acc, word, i) => acc + 
-    `<tr>
+  return tableData.reduce((acc, word, i) => `${acc
+  }<tr>
       <td>${i.toString(16).toUpperCase()}</td>
-      <td>0x${word.toString(16).padStart(bytes, "0").toUpperCase()}</td>
-    </tr>`, "");
+      <td>0x${word.toString(16).padStart(bytes, '0').toUpperCase()}</td>
+    </tr>`, '');
 }
 
 function renderLabelledTable(tableData) {
-  return tableData.reduce((acc, register) => acc +
-  `
+  return tableData.reduce((acc, register) => `${acc
+  }
     <tr>
       <td>${register.name.toUpperCase()}</td>
-      <td>0x${register.value.toString(16).padStart(register.bytes, "0").toUpperCase()}</td>
+      <td>0x${register.value.toString(16).padStart(register.bytes, '0').toUpperCase()}</td>
     </tr>
-  `, "");
+  `, '');
 }
 
 export default class RegisterRenderer {
@@ -25,7 +25,7 @@ export default class RegisterRenderer {
     this.gpRegisters = new Uint8Array(
       memory.buffer,
       gpRegisterPointer,
-      16
+      16,
     );
     this.getRegisterValues = getRegisterValues;
     this.stack = new Uint16Array(
